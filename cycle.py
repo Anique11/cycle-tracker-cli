@@ -6,6 +6,8 @@ Can be used to record a cycle start day (-s/--start) or give the likely next cyc
 Requires the Arrow Python module.
 """
 
+from os import path
+from json import load
 from argparse import ArgumentParser
 import arrow
 
@@ -14,11 +16,8 @@ parser.add_argument('-s', '--start', nargs='?', type=int, const=0, metavar='N', 
 parser.add_argument('-p', '--plan', action='store_true', help='display likely start days for the next cycle')
 commands = parser.parse_args()
 
-config= {
-    'cycles_file': 'cycles.txt',
-    'avg_cycle_length': 30,
-    'locale': 'nl'
-}
+with open (path.expanduser('~/.cycle/cycle_config.json')) as configfile:
+    config = load(configfile)
 
 today = arrow.now()
 
@@ -50,7 +49,7 @@ def confirm_date(today, shiftval):
 
 if commands.start is None:
     # we are displaying information. Open file for reading.
-    with open(config['cycles_file']) as data:
+    with open(path.expanduser(config['cycles_file'])) as data:
         cycles = data.readlines()
         startday = arrow.get(cycles[-1])
         cycle_day = (today - startday).days + 1
@@ -68,6 +67,6 @@ if commands.start is None:
             print('CD: {}'.format(cycle_day))
 else:
     # we are modifying information. Open file for writing.
-    with open(config['cycles_file'], 'a') as data:
+    with open(path.expanduser(config['cycles_file']), 'a') as data:
         startday = confirm_date(today, commands.start)
         print(startday.format('YYYY-MM-DD'), file=data)
